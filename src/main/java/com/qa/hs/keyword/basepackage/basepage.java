@@ -3,6 +3,7 @@ package com.qa.hs.keyword.basepackage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Properties;
 
 import org.openqa.selenium.WebDriver;
@@ -18,18 +19,32 @@ public class basepage {
 	
 	public WebDriver init_driver(String browserName) {
 		
+		ChromeOptions options = new ChromeOptions(); 
+	HashMap<String, Integer> conentSettings = new HashMap<String, Integer>();
+	HashMap<String, Object> profile = new HashMap<String, Object>();
+	HashMap<String, Object> prefs = new HashMap<String, Object>();
+	
+	conentSettings.put("notifications", 1);
+	profile.put("managed_default_content_settings", conentSettings);
+	prefs.put("profile", profile);
+	options.setExperimentalOption("prefs", prefs);
+	
+
+		
       if(browserName.equals("chrome"))	{
 			
 	  System.setProperty("webdriver.chrome.driver", "D:\\chromedriver.exe");
+	  
+	  
 		if(prop.getProperty("headless").equals("yes")) {
 			
 			//headless mode:
 			
-			ChromeOptions options = new  ChromeOptions();
-			options.addArguments("--headless");
-			driver = (WebDriver) new ChromeDriver(options);
+			driver = new ChromeDriver(options);
+			driver.manage().window().maximize();
 			
 		} else {
+			
 			driver = new ChromeDriver();
 		}
       }

@@ -1,24 +1,24 @@
 package com.qa.hs.keyword.engine;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import com.graphbuilder.curve.Point;
 import com.qa.hs.keyword.basepackage.basepage;
 
+
+@SuppressWarnings("unused")
 public class KeyWordEngine {
 
 	
@@ -29,66 +29,44 @@ public class KeyWordEngine {
 	public static Workbook book;
 	public static Sheet sheet;
 	
-	 public  basepage base;
+	 public basepage base;
 	 public WebElement element;
 	
-	 public final String EXCEL_SHEET_PATH = "C:\\Users\\Devesh Singhal\\eclipse-workspace\\MyFirstMavenDemo"
-			 + "\\src\\main\\java\\com\\qa\\hs\\keyword\\scenarios\\hubspot_scenarios.xlsx";
+	 public final String EXCEL_SHEET_PATH = ("C:\\Users\\Devesh Singhal\\eclipse-workspace\\MyFirstMavenDemo"
+			 + "\\src\\main\\java\\com\\qa\\hs\\keyword\\scenarios\\test_scenarios7.xlsx");
 	 
-	 @SuppressWarnings("deprecation")
-	public void startExecution(String sheetName) throws InvalidFormatException, InterruptedException   {
+
+	public void startExecution(String sheetName) throws  InterruptedException, EncryptedDocumentException, IOException  {
 	 
-		 String locatorName = null;
-		 String locatorValue =  null;
-		 
-		 
 		 FileInputStream file = null;
-		try { 
+		
 		 file  = new FileInputStream(EXCEL_SHEET_PATH);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		 
-		try {
+
 		 book = WorkbookFactory.create(file);
 		 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		 sheet = book.getSheetAt(0);
 		 
-		 
-		 sheet = book.getSheet(sheetName);
 		 int k = 0;
-		 for(int i=0; i<sheet.getLastRowNum(); i++) {
+		 
+		 for (int i = 0; i < sheet.getLastRowNum(); i++) {
 
 			 try {
-			 
-		 String locatorColValue = sheet.getRow(i+1).getCell(k+1).toString();
-		 
-		  if(!locatorColValue.equalsIgnoreCase("NA")) {
-			 
-			  
-			locatorName = locatorColValue.split("=")[0].trim();
-			
-			locatorValue = locatorColValue.split("=")[2].trim();
-		  } 
-		
-		  
-		 String action = sheet.getRow(i + 1).getCell(k + 2).toString().trim();
-	     String value = sheet.getRow(i + 1).getCell(k + 3).toString().trim();
+				 
+		 String locatorType = sheet.getRow(i+1).getCell(k+1).toString().trim();
+		 String locatorValue = sheet.getRow(i+1).getCell(k+2).toString().trim();
+         String action = sheet.getRow(i+1).getCell(k+3).toString().trim();
+	     String value = sheet.getRow(i+1).getCell(k+4).toString().trim();
 
-
-	      
-	     switch (action) {
+	  
+	 switch (action) {
+	 
 	   case "open browser":
 	      base = new basepage();
 	      prop = base.init_properties();
 	      
-	      driver = base.init_driver(value);
-	      if(value.isEmpty() || value.equals("NA")){
+	          if(value.isEmpty() || value.equals("NA")) {
 	    	  driver = base.init_driver(prop.getProperty("browser"));
-	    	  
-	      } else {
+	    	  } else {
 	    	  
 	    	  driver = base.init_driver(value);
 	      }
@@ -98,15 +76,15 @@ public class KeyWordEngine {
 		 
 	   case "enter url":
 	       if(value.isEmpty() || value.equals("NA")) {
+	    	   
     		 driver.get(prop.getProperty("url"));
     	 } else {
-                 driver.get("https://facebook.com");
+                 driver.get(value);
+                 Thread.sleep(4000);
+                 
                  driver.manage().window().maximize();
-                 driver.manage().deleteAllCookies();
-                
-                 driver.navigate().refresh();
+              Thread.sleep(15000);        
                          
-             
 	 }
 	  
       break;  
@@ -114,16 +92,99 @@ public class KeyWordEngine {
 	   case "quit":
 		   driver.quit();
 		   break;
+		  
 		   
  default:
     	break;
 	     }
 	     
 	     
-	     switch (locatorName) {
+	   
+		switch (locatorType) {
 	     
 	     case "id":
 	    	 WebElement element = driver.findElement(By.id(locatorValue));
+	    	 if(action.equalsIgnoreCase("sendKeys")) {
+	    	element.clear();		 
+	    	 element.sendKeys(value);
+	    	 Thread.sleep(5000);
+	    
+	     } else if (action.equalsIgnoreCase("click")) {
+	    	  element.click();
+	    	  
+	    	  
+	    	 
+	     } else if (action.equalsIgnoreCase("isDisplayed")) {
+    		 element.isDisplayed();
+    		 
+    		 Thread.sleep(10000);
+    		 
+    	 }
+	    	 locatorType=null;
+	    	 
+		   break;
+		 
+		
+	     case "className":
+	    	 element = driver.findElement(By.className(locatorValue));
+	    	 if(action.equalsIgnoreCase("sendKeys")) {
+	    	element.clear();		 
+	    	 element.sendKeys(value);
+	   
+	    
+	     } else if (action.equalsIgnoreCase("click")) {
+	    	 element.click();
+	    	 new WebDriverWait(driver, Duration.ofSeconds(10));
+	
+	    	 
+	    	 
+	     } else if (action.equalsIgnoreCase("isDisplayed")) {
+    		 element.isDisplayed();
+    		 Thread.sleep(5000);
+    		 
+    	 }
+	    	 locatorType=null;
+	    	 
+		   break;
+		   
+		   
+		   
+	     case "name":
+	    	 element = driver.findElement(By.name(locatorValue));
+	    	 if(action.equalsIgnoreCase("sendKeys")) {
+	    	element.clear();		 
+	    	 element.sendKeys(value);
+	    	 Thread.sleep(10000);
+	    	 
+	    	 driver.findElement(By.xpath("//*[@id='day']")).click();
+	    	 
+	    		// Create object of the Select class
+	    		Select se = new Select(driver.findElement(By.xpath("//*[@id='day']")));
+	    		 
+	    		// Select the option by index
+	    		se.selectByIndex(6);
+	    		
+	    		Thread.sleep(8000);
+	    		driver.findElement(By.xpath("//*[@id='day']")).click();
+	    
+	     } else if (action.equalsIgnoreCase("click")) {
+	    	 
+	    	 element.click();
+	    	 Thread.sleep(10000);
+	  
+	  
+	     } 
+	    	 locatorType=null;
+	    	 
+		   break;
+		   
+		
+		   
+		   
+		   
+		   
+	     case "linkText":
+	    	 element = driver.findElement(By.linkText(locatorValue));
 	    	 if(action.equalsIgnoreCase("sendKeys")) {
 	    	element.clear();		 
 	    	 element.sendKeys(value);
@@ -131,16 +192,45 @@ public class KeyWordEngine {
 	     } else if (action.equalsIgnoreCase("click")) {
 	    	 
 	    	 element.click();
+	    	 Thread.sleep(10000);
+	    	 
+	  
 	     } 
-	    	 locatorName=null;
+	    	 locatorType=null;
 	    	 
 		   break;
 		   
-		   default:
-			   break;
+		   
+		   
+		   
+		   case "xpath":
 			   
-}   
+			  element = driver.findElement(By.xpath(locatorValue));
+	 	    	 if(action.equalsIgnoreCase("sendKeys")) {
+		    	element.clear();		 
+		    	 element.sendKeys(value);
+		    
+		     } else if (action.equalsIgnoreCase("click")) {
+		    	 
+		    	 element.click();
+		    	 Thread.sleep(15000);
+		 
+	 
+		     }  else if (action.equalsIgnoreCase("isDisplayed")) {
+		    		 element.isDisplayed();
+		    		 Thread.sleep(15000);
+		    	 }
+		     
+		    	 locatorType=null;
+		    	 break;
+		    	 
+		    	 default:
+			   break;
+			
 			 }
+			      
+			 }  
+			 
 	 
 		catch(Exception e) {
 	    
